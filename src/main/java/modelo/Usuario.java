@@ -1,5 +1,13 @@
 package modelo;
 
+import datos.ConexionBD;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
+
 public class Usuario {
     protected String dni;
     protected String nombre;
@@ -41,6 +49,106 @@ public class Usuario {
     public void setMatricula(String matricula) {
         this.matricula = matricula;
     }
+
+    public boolean existeUsuario() throws Exception {
+
+        String sql = "SELECT * from usuarios WHERE dni = ?";
+
+        try (PreparedStatement pst = ConexionBD.getConexionBD().prepareStatement(sql)) {
+
+            pst.setString(1, dni);
+            ResultSet rs = pst.executeQuery();
+            return rs.next();
+
+        } catch (SQLException e) {
+            throw new Exception("Error en existeUsuario!!");
+        }
+
+   }
+
+    public void altaUsuario() throws Exception {
+
+        if (existeUsuario()) {
+            throw new Exception("El usuario ya existe!!");
+        }
+
+        String sql = "INSERT INTO usuario VALUES(?,?,?,?)";
+
+        try (PreparedStatement pst = ConexionBD.getConexionBD().prepareStatement(sql)) {
+
+            pst.setString(1, dni);
+            pst.setString(2, nombre);
+            pst.setString(3, matricula);
+            pst.setNull(4, java.sql.Types.DECIMAL);
+            pst.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new Exception("Error en altaUsuario!!");
+        }
+
+    }
+
+    public void bajaUsuario() throws Exception {
+
+        String sql = "DELETE FROM usuario WHERE dni = ?";
+
+        try (PreparedStatement pst = ConexionBD.getConexionBD().prepareStatement(sql)) {
+
+            pst.setString(1, dni);
+            pst.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new Exception("Error en bajaUsuario!!", e);
+        }
+    }
+
+    public void modificarUsuario(String nombre, String matricula) throws Exception {
+
+        String sql = "UPDATE Usuario SET nombre = ?, matricula = ? WHERE DNI = ?";
+
+        try (Connection con = ConexionBD.getConexionBD()) {
+
+            try (PreparedStatement pst1 = con.prepareStatement(sql)) {
+
+                pst1.setString(1, nombre);
+                pst1.setString(2, matricula);
+                pst1.setString(3, dni);
+                pst1.executeUpdate();
+
+            } catch (SQLException e) {
+                throw new Exception("Error en modificarAula");
+            }
+
+        } catch (SQLException e) {
+            throw new Exception("Error en modificarAula");
+        }
+
+    }
+
+    public static void listadoUuario(List<Usuario> usuarios) throws Exception {
+
+        String sql = "SELECT * from usuario ORDER BY dni";
+
+        try (PreparedStatement pst = ConexionBD.getConexionBD().prepareStatement(sql)) {
+
+            ResultSet rs = pst.executeQuery();
+            Usuario usuario;
+
+            while (rs.next()) {
+                usuario = new Usuario();
+                usuario.setDni(rs.getString(1));
+                usuario.setNombre(rs.getString(2));
+                usuario.setMatricula(rs.getString(3));
+                usuarios.add(usuario);
+            }
+
+        } catch (SQLException e) {
+            throw new Exception("Error en listadoArmarios!!");
+        }
+
+    }
+
+
 }
 
 

@@ -1,0 +1,7 @@
+# MySQL Properties
+
+mysql.driver=com.mysql.jdbc.Driver
+mysql.url=jdbc:mysql://localhost:3306/proyectoEntornos?serverTimezone=UTC
+# ? serverTimezone=Europe/Madrid & useSSL=false & useServerPrepStmts=true
+mysql.username=alumno
+mysql.password=alumno

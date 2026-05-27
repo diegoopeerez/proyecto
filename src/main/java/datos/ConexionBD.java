@@ -27,29 +27,29 @@ public class ConexionBD {
     private static void crearTablas() throws Exception {
         String sql;
         try (Statement st = conexionBD.createStatement()) {
-            sql = "CREATE TABLE Usuario ("
-                    +"DNI VARCHAR(9) PRIMARY KEY, "
-                    +"nombre VARCHAR(100) NOT NULL, "
-                    +"matricula VARCHAR(10) NOT NULL, "
-                    +"descuento DECIMAL(5,2))";
+            sql = "CREATE TABLE IF NOT EXISTS usuario ("
+                    + "DNI VARCHAR(9) PRIMARY KEY, "
+                    + "nombre VARCHAR(100) NOT NULL, "
+                    + "matricula VARCHAR(10) NOT NULL, "
+                    + "descuento DECIMAL(5,2))";
             st.executeUpdate(sql);
 
-            sql = "CREATE TABLE reserva("
-                    +"numero_reserva INT PRIMARY KEY "
-                    +"dni_cliente VARCHAR(9) NOT NULL "
-                    +"numero_plaza INT UNIQUE, "
-                    +"fecha_hora_salida DATETIME, "
-                    +"fecha_hora_entrada DATETIME NOT NULL, "
-                    +"coste DECIMAL(6,2), "
-                    +"FOREIGN KEY (dni_cliente) REFERENCES usuario(DNI), "
-                    +"FOREIGN KEY (numero_plaza) REFERENCES plaza(numero_plaza))";
+            sql = "CREATE TABLE IF NOT EXISTS plaza("
+                    + "numero_plaza INT PRIMARY KEY, "
+                    + "estado varchar(20) NOT NULL, "
+                    + "descuento DECIMAL(5,2), "
+                    + "precio_carga DECIMAL(5,2))";
             st.executeUpdate(sql);
 
-            sql = "CREATE TABLE Plaza("
-                    +"numero_plaza INT PRIMARY KEY, "
-                    +"estado varchar2(20) NOT NULL, "
-                    +"descuento DECIMAL(5,2), "
-                    +"precio_carga DECIMAL(5,2))";
+            sql = "CREATE TABLE IF NOT EXISTS reserva("
+                    + "numero_reserva INT PRIMARY KEY, "
+                    + "dni_cliente VARCHAR(9) NOT NULL, "
+                    + "numero_plaza INT UNIQUE, "
+                    + "fecha_hora_salida DATETIME, "
+                    + "fecha_hora_entrada DATETIME NOT NULL, "
+                    + "coste DECIMAL(6,2), "
+                    + "FOREIGN KEY (dni_cliente) REFERENCES usuario(DNI), "
+                    + "FOREIGN KEY (numero_plaza) REFERENCES plaza(numero_plaza))";
             st.executeUpdate(sql);
 
         } catch (SQLException e) {
@@ -61,6 +61,7 @@ public class ConexionBD {
         try (FileInputStream fis = new FileInputStream("dbproperties.txt")) {
             Properties props = new Properties();
             props.load(fis);
+
             conexionBD = DriverManager.getConnection(
                     props.getProperty("mysql.url"),
                     props.getProperty("mysql.username"),
