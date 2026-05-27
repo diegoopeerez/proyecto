@@ -3,7 +3,9 @@ package modelo;
 import datos.ConexionBD;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 public class UsuarioVIP extends Usuario {
     private double descuento;
@@ -46,4 +48,5 @@ public class UsuarioVIP extends Usuario {
             throw new Exception("Error en altaUsuario!!");
         }
     }
+
 }

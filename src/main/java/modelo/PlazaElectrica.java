@@ -5,26 +5,26 @@ import datos.ConexionBD;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-public class PlazaMinusvalida extends Plaza {
+public class PlazaElectrica extends Plaza {
 
-    private double descuento;
+    private double precioCarga;
 
-    public PlazaMinusvalida() {
+    public PlazaElectrica() {
         super();
-        descuento = 0.0;
+        precioCarga = 0.0;
     }
 
-    public PlazaMinusvalida(int numeroPlaza) {
+    public PlazaElectrica(int numeroPlaza) {
         super(numeroPlaza);
-        this.descuento = 0.0;
+        precioCarga = 0.0;
     }
 
-    public double getDescuento() {
-        return descuento;
+    public double getPrecioCarga() {
+        return precioCarga;
     }
 
-    public void setDescuento(double descuento) {
-        this.descuento = descuento;
+    public void setPrecioCarga(double precioCarga) {
+        this.precioCarga = precioCarga;
     }
 
     @Override
@@ -39,13 +39,12 @@ public class PlazaMinusvalida extends Plaza {
 
             pst.setInt(1, numeroPlaza);
             pst.setString(2, categoria.toString());
-            pst.setDouble(3, descuento);
-            pst.setNull(4, java.sql.Types.DECIMAL);
+            pst.setNull(3, java.sql.Types.DECIMAL);
+            pst.setDouble(4, precioCarga);
             pst.executeUpdate();
 
         } catch (SQLException e) {
             throw new Exception("Error en altaPlaza!!");
         }
     }
-
 }

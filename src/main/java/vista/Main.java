@@ -1,11 +1,8 @@
 package vista;
 
 import datos.ConexionBD;
-import modelo.Usuario;
-import modelo.UsuarioVIP;
+import modelo.*;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 public class Main {
@@ -68,14 +65,14 @@ public class Main {
                     System.out.print("Introduce el dni del Usuario: ");
                     usuario.setDni(sc.next());
 
-                    System.out.print("Introduce el nombre del Usuario");
+                    System.out.print("Introduce el nombre del Usuario: ");
                     usuario.setNombre(sc.next());
 
-                    System.out.print("Introduce la matricula del Usuario");
-                    usuario.setNombre(sc.next());
+                    System.out.print("Introduce la matricula del Usuario: ");
+                    usuario.setMatricula(sc.next());
 
                     if (usuario instanceof UsuarioVIP uv) {
-                        System.out.print("Introduce el descuento del Usuario");
+                        System.out.print("Introduce el descuento del Usuario: ");
                         uv.setDescuento(sc.nextDouble());
                     }
 
@@ -88,86 +85,100 @@ public class Main {
 
                 }
 
-//                break;
-//                case 2: //Baja de Usuario.
-//                {
-//                    System.out.print("Introduce el id del Aula: ");
-//                    Aula aula = new Aula(sc.nextInt());
-//
-//                    try {
-//                        aula.bajaAula();
-//                        System.out.println("Baja de aula correcta. ID: " + aula.getId());
-//                    } catch (Exception e) {
-//                        System.out.println("Baja de aula incorrecta" + e.getMessage());
-//                    }
-//
-//                }
-//                break;
-//
-//                case 3: // Modificar Usuario
-//                {
-//
-//                    Aula aula = new Aula();
-//
-//                    System.out.print("Introduce el id de Aula: ");
-//                    aula.setId(sc.nextInt());
-//
-//                    System.out.print("Introduce el nuevo nombre: ");
-//                    String nombre = sc.next();
-//
-//                    try {
-//                        aula.modificarAula(nombre);
-//                    } catch (Exception e) {
-//                        System.out.println("Error" + e.getMessage());
-//                    }
-//
-//                }
-//                break;
-//
-//                case 4: //Alta de Plaza
-//                {
-//                    Armario armario = new Armario();
-//
-//                    System.out.print("Introduce el id del Aula: ");
-//                    armario.setIdAula(sc.nextInt());
-//
-//                    System.out.print("Introduce el id de Armario: ");
-//                    armario.setId(sc.nextInt());
-//
-//                    System.out.print("Introduce el nombre del Armario");
-//                    armario.setNombre(sc.next());
-//
-//                    try {
-//                        armario.altaArmario();
-//                        System.out.println("Alta de armario correcta. ID: " + armario.getId());
-//                    } catch (Exception e) {
-//                        System.out.println("Alta de armario incorrecta" + e.getMessage());
-//                    }
-//
-//                }
-//                break;
-//
-//                case 5: //Baja de Plaza
-//                {
-//
-//                    Armario armario = new Armario();
-//
-//                    System.out.print("Introduce el id del Aula: ");
-//                    armario.setIdAula(sc.nextInt());
-//
-//                    System.out.print("Introduce el id de Armario: ");
-//                    armario.setId(sc.nextInt());
-//
-//                    try {
-//                        armario.bajaArmario();
-//                        System.out.println("Baja de armario correcta. ID: " + armario.getId());
-//                    } catch (Exception e) {
-//                        System.out.println("Baja de armario incorrecta" + e.getMessage());
-//                    }
-//
-//                }
-//                break;
-//
+                break;
+                case 2: //Baja de Usuario.
+                {
+                    System.out.print("Introduce el dni del Usuario: ");
+                    Usuario usuario = new Usuario(sc.next());
+
+                    try {
+                        usuario.bajaUsuario();
+                        System.out.println("Baja de usuario correcta. DNI: " + usuario.getDni());
+                    } catch (Exception e) {
+                        System.out.println("Baja de usuario incorrecta" + e.getMessage());
+                    }
+
+                }
+                break;
+
+                case 3: // Modificar Usuario
+                {
+                    Usuario usuario = new Usuario();
+
+                    System.out.print("Introduce el dni del Usuario: ");
+                    usuario.setDni(sc.next());
+
+                    System.out.print("Introduce el nuevo nombre (o deja igual): ");
+                    String nombre = sc.next();
+
+                    System.out.print("Introduce la nuevo matricula (o deja igual): ");
+                    String matricula = sc.next();
+
+                    try {
+                        usuario.modificarUsuario(nombre, matricula);
+                    } catch (Exception e) {
+                        System.out.println("Error" + e.getMessage());
+                    }
+
+                }
+                break;
+
+                case 4: //Alta de Plaza
+                {
+                    Plaza plaza = null;
+
+                    System.out.println("De que tipo es la plaza normal, electrica o minusvalida? (n,e,m): ");
+                    char opcion = sc.next().charAt(0);
+
+                    if (opcion == 'n') {
+                        plaza = new Plaza();
+                    } else if (opcion == 'e') {
+                        plaza = new PlazaElectrica();
+                    } else if (opcion == 'm') {
+                        plaza = new PlazaMinusvalida();
+                    }
+
+                    System.out.print("Introduce el numero de Plaza: ");
+                    plaza.setNumeroPlaza(sc.nextInt());
+
+                    System.out.print("Introduce el estado de la plaza, OCUPADA, RESERVADA, LIBRE o FUERA_DE_SERVICIO");
+                    plaza.setCategoria(sc.next());
+
+                    if (plaza instanceof PlazaElectrica pe) {
+                        System.out.print("Introduce el precio de carga: ");
+                        pe.setPrecioCarga(sc.nextDouble());
+                    } else if (plaza instanceof PlazaMinusvalida pm) {
+                        System.out.print("Introduce el descuento: ");
+                        pm.setDescuento(sc.nextDouble());
+                    }
+
+                    try {
+                        plaza.altaPlaza();
+                        System.out.println("Alta de plaza correcta. NUMERO: " + plaza.getNumeroPlaza());
+                    } catch (Exception e) {
+                        System.out.println("Alta de plaza incorrecta" + e.getMessage());
+                    }
+
+                }
+                break;
+
+                case 5: //Baja de Plaza (poner a fuera de servicio)
+                {
+                    Plaza plaza = new Plaza();
+
+                    System.out.print("Introduce el numero de Plaza: ");
+                    plaza.setNumeroPlaza(sc.nextInt());
+
+                    try {
+                        plaza.bajaPlaza();
+                        System.out.println("Baja de plaza correcta. NUMERO: " + plaza.getNumeroPlaza());
+                    } catch (Exception e) {
+                        System.out.println("Baja de plaza incorrecta" + e.getMessage());
+                    }
+
+                }
+                break;
+
 //                case 6: //Alta de Reserva
 //                {
 //
@@ -357,7 +368,7 @@ public class Main {
 //                }
 //                default:
 //
-           }
+            }
         } while (op != 0);
 
     }

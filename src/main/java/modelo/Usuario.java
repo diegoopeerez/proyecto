@@ -52,7 +52,7 @@ public class Usuario {
 
     public boolean existeUsuario() throws Exception {
 
-        String sql = "SELECT * from usuarios WHERE dni = ?";
+        String sql = "SELECT * from usuario WHERE dni = ?";
 
         try (PreparedStatement pst = ConexionBD.getConexionBD().prepareStatement(sql)) {
 
@@ -116,34 +116,53 @@ public class Usuario {
                 pst1.executeUpdate();
 
             } catch (SQLException e) {
-                throw new Exception("Error en modificarAula");
+                throw new Exception("Error en modificarUsuario");
             }
 
         } catch (SQLException e) {
-            throw new Exception("Error en modificarAula");
+            throw new Exception("Error en modificarUsuario");
         }
 
     }
 
-    public static void listadoUuario(List<Usuario> usuarios) throws Exception {
+    public static void listadoUsuario(List<UsuarioListado> usuarios) throws Exception {
 
         String sql = "SELECT * from usuario ORDER BY dni";
 
         try (PreparedStatement pst = ConexionBD.getConexionBD().prepareStatement(sql)) {
 
             ResultSet rs = pst.executeQuery();
-            Usuario usuario;
+            UsuarioListado usuarioListado;
 
             while (rs.next()) {
-                usuario = new Usuario();
-                usuario.setDni(rs.getString(1));
-                usuario.setNombre(rs.getString(2));
-                usuario.setMatricula(rs.getString(3));
-                usuarios.add(usuario);
+                usuarioListado = new UsuarioListado();
+                usuarioListado.setDni(rs.getString(1));
+                usuarioListado.setNombre(rs.getString(2));
+                usuarioListado.setMatricula(rs.getString(3));
+                usuarioListado.setDescuento(rs.getObject(4, Double.class));
+                usuarios.add(usuarioListado);
             }
 
         } catch (SQLException e) {
-            throw new Exception("Error en listadoArmarios!!");
+            throw new Exception("Error en listadoUsuarios!!");
+        }
+
+    }
+
+    public static class UsuarioListado extends Usuario {
+        ;
+        private Double descuento;
+
+        public UsuarioListado() {
+            descuento = null;
+        }
+
+        public Double getDescuento() {
+            return descuento;
+        }
+
+        public void setDescuento(Double descuento) {
+            this.descuento = descuento;
         }
 
     }
