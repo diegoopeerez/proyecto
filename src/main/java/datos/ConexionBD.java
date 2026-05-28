@@ -14,8 +14,8 @@ public class ConexionBD {
     private static Connection conexionBD;
 
     /* Constructores **********************************************************/
+    // CORREGIDO: el constructor no debe tocar el campo static
     public ConexionBD() {
-        conexionBD = null;
     }
 
     /* Métodos getters & setters **********************************************/
@@ -35,21 +35,24 @@ public class ConexionBD {
             st.executeUpdate(sql);
 
             sql = "CREATE TABLE IF NOT EXISTS plaza("
-                    + "numero_plaza INT PRIMARY KEY, "
+                    + "numeroPlaza INT PRIMARY KEY, "
                     + "estado varchar(20) NOT NULL, "
                     + "descuento DECIMAL(5,2), "
-                    + "precio_carga DECIMAL(5,2))";
+                    + "precioCarga DECIMAL(5,2))";
             st.executeUpdate(sql);
 
+            // CORREGIDO: eliminado UNIQUE en numeroPlaza.
+            // Con UNIQUE solo podría haber UNA reserva por plaza en toda la historia;
+            // al liberar una plaza y volver a reservarla, la INSERT fallaba.
             sql = "CREATE TABLE IF NOT EXISTS reserva("
-                    + "numero_reserva INT PRIMARY KEY, "
-                    + "dni_cliente VARCHAR(9) NOT NULL, "
-                    + "numero_plaza INT UNIQUE, "
-                    + "fecha_hora_salida DATETIME, "
-                    + "fecha_hora_entrada DATETIME NOT NULL, "
+                    + "numeroReserva INT PRIMARY KEY, "
+                    + "dniCliente VARCHAR(9) NOT NULL, "
+                    + "numeroPlaza INT NOT NULL, "
+                    + "fechaHoraSalida DATETIME, "
+                    + "fechaHoraEntrada DATETIME NOT NULL, "
                     + "coste DECIMAL(6,2), "
-                    + "FOREIGN KEY (dni_cliente) REFERENCES usuario(DNI), "
-                    + "FOREIGN KEY (numero_plaza) REFERENCES plaza(numero_plaza))";
+                    + "FOREIGN KEY (dniCliente) REFERENCES usuario(DNI), "
+                    + "FOREIGN KEY (numeroPlaza) REFERENCES plaza(numeroPlaza))";
             st.executeUpdate(sql);
 
         } catch (SQLException e) {

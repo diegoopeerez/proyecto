@@ -81,7 +81,7 @@ public class Main {
                         usuario.altaUsuario();
                         System.out.println("Alta de usuario correcta. DNI: " + usuario.getDni());
                     } catch (Exception e) {
-                        System.out.println("Alta de usuario incorrecta" + e.getMessage());
+                        System.out.println("Alta de usuario incorrecta " + e.getMessage());
                     }
 
                 }
@@ -96,7 +96,7 @@ public class Main {
                         usuario.bajaUsuario();
                         System.out.println("Baja de usuario correcta. DNI: " + usuario.getDni());
                     } catch (Exception e) {
-                        System.out.println("Baja de usuario incorrecta" + e.getMessage());
+                        System.out.println("Baja de usuario incorrecta " + e.getMessage());
                     }
 
                 }
@@ -139,10 +139,11 @@ public class Main {
                         plaza = new PlazaMinusvalida();
                     }
 
-                    System.out.print("Introduce el numero de Plaza: ");
-                    plaza.setNumeroPlaza(sc.nextInt());
+                    // no haria falta porque vamos a meter que se genere solo con formato (XXXXXX)
+//                    System.out.print("Introduce el numero de Plaza: ");
+//                    plaza.setNumeroPlaza(sc.nextInt());
 
-                    System.out.print("Introduce el estado de la plaza, OCUPADA, RESERVADA, LIBRE o FUERA_DE_SERVICIO");
+                    System.out.print("Introduce el estado de la plaza, OCUPADA, LIBRE o FUERA_DE_SERVICIO: ");
                     plaza.setEstado(sc.next());
 
                     if (plaza instanceof PlazaElectrica pe) {
@@ -157,7 +158,7 @@ public class Main {
                         plaza.altaPlaza();
                         System.out.println("Alta de plaza correcta. NUMERO: " + plaza.getNumeroPlaza());
                     } catch (Exception e) {
-                        System.out.println("Alta de plaza incorrecta" + e.getMessage());
+                        System.out.println("Alta de plaza incorrecta " + e.getMessage());
                     }
 
                 }
@@ -167,14 +168,14 @@ public class Main {
                 {
                     Plaza plaza = new Plaza();
 
-                    System.out.print("Introduce el numero de Plaza: ");
+                    System.out.print("Introduce el numero de Plaza (XXXXXX): ");
                     plaza.setNumeroPlaza(sc.nextInt());
 
                     try {
                         plaza.bajaPlaza();
                         System.out.println("Baja de plaza correcta. NUMERO: " + plaza.getNumeroPlaza());
                     } catch (Exception e) {
-                        System.out.println("Baja de plaza incorrecta" + e.getMessage());
+                        System.out.println("Baja de plaza incorrecta " + e.getMessage());
                     }
 
                 }
@@ -185,15 +186,16 @@ public class Main {
 
                     Reserva reserva = new Reserva();
 
-                    System.out.print("Introduce el numero de reserva: ");
-                    reserva.setNumeroReserva(sc.nextInt());
+                    // no haria falta porque vamos a meter que se genere solo con formato (RXXXXXX)
+//                    System.out.print("Introduce el numero de reserva: ");
+//                    reserva.setNumeroReserva(sc.nextInt());
 
                     System.out.print("Introduce tu dni: ");
                     reserva.setDniCliente(sc.next());
 
-                    //No porque se supone que te asigna una que este libre automaticamente
-                    System.out.print("Introduce el numero de plaza: ");
-                    reserva.setNumeroPlaza(sc.nextInt());
+                    //No porque se supone que te asigna una que este LIBRE automaticamente
+//                    System.out.print("Introduce el numero de plaza: ");
+//                    reserva.setNumeroPlaza(sc.nextInt());
 
 
                     try {
@@ -256,7 +258,7 @@ public class Main {
                     Plaza.listadoPlaza(plazasListado);
                     for (Plaza.PlazaListado plazaListado : plazasListado) {
                         System.out.printf(
-                                "NUMERO DE PLAZA: %d, ESTADO: %s, PRECIO DE CARGA: %.2f, DESCUENTO: %.2f",
+                                "NUMERO DE PLAZA: %d, ESTADO: %s, PRECIO DE CARGA: %.2f, DESCUENTO: %.2f%n",
                                 plazaListado.getNumeroPlaza(),
                                 plazaListado.getEstado(),
                                 plazaListado.getPrecioCarga() != null ? plazaListado.getPrecioCarga() : 0.0,
@@ -280,7 +282,7 @@ public class Main {
                                 reserva.getNumeroPlaza(),
                                 reserva.getFechaHoraEntrada(),
                                 reserva.getFechaHoraSalida() != null ? reserva.getFechaHoraSalida() : "",
-                                reserva.getCoste() != 0 ? String.format("%.2f", reserva.getCoste()) : ""
+                                reserva.getCoste() != 0.00 ? String.format("%.2f", reserva.getCoste()) : ""
                         );
                     }
                 }

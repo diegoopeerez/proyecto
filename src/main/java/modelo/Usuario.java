@@ -2,7 +2,6 @@ package modelo;
 
 import datos.ConexionBD;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,11 +18,34 @@ public class Usuario {
         matricula = "";
     }
 
-
     public Usuario(String dni) {
         this.dni = dni;
         this.nombre = "";
         this.matricula = "";
+    }
+
+    public static void listadoUsuario(List<UsuarioListado> usuarios) throws Exception {
+
+        String sql = "SELECT * from usuario ORDER BY dni";
+
+        try (PreparedStatement pst = ConexionBD.getConexionBD().prepareStatement(sql)) {
+
+            ResultSet rs = pst.executeQuery();
+            UsuarioListado usuarioListado;
+
+            while (rs.next()) {
+                usuarioListado = new UsuarioListado();
+                usuarioListado.setDni(rs.getString(1));
+                usuarioListado.setNombre(rs.getString(2));
+                usuarioListado.setMatricula(rs.getString(3));
+                usuarioListado.setDescuento(rs.getObject(4, Double.class));
+                usuarios.add(usuarioListado);
+            }
+
+        } catch (SQLException e) {
+            throw new Exception("Error en listadoUsuarios!!", e);
+        }
+
     }
 
     public String getDni() {
@@ -61,10 +83,10 @@ public class Usuario {
             return rs.next();
 
         } catch (SQLException e) {
-            throw new Exception("Error en existeUsuario!!");
+            throw new Exception("Error en existeUsuario!!", e);
         }
 
-   }
+    }
 
     public void altaUsuario() throws Exception {
 
@@ -83,7 +105,7 @@ public class Usuario {
             pst.executeUpdate();
 
         } catch (SQLException e) {
-            throw new Exception("Error en altaUsuario!!");
+            throw new Exception("Error en altaUsuario!!", e);
         }
 
     }
@@ -102,49 +124,22 @@ public class Usuario {
         }
     }
 
+    // CORREGIDO: antes hacía try (Connection con = ConexionBD.getConexionBD())
+    // lo que cerraba la conexión compartida al salir del bloque, dejando
+    // la aplicación entera sin conexión a partir de ese momento.
     public void modificarUsuario(String nombre, String matricula) throws Exception {
 
         String sql = "UPDATE Usuario SET nombre = ?, matricula = ? WHERE DNI = ?";
 
-        try (Connection con = ConexionBD.getConexionBD()) {
-
-            try (PreparedStatement pst1 = con.prepareStatement(sql)) {
-
-                pst1.setString(1, nombre);
-                pst1.setString(2, matricula);
-                pst1.setString(3, dni);
-                pst1.executeUpdate();
-
-            } catch (SQLException e) {
-                throw new Exception("Error en modificarUsuario");
-            }
-
-        } catch (SQLException e) {
-            throw new Exception("Error en modificarUsuario");
-        }
-
-    }
-
-    public static void listadoUsuario(List<UsuarioListado> usuarios) throws Exception {
-
-        String sql = "SELECT * from usuario ORDER BY dni";
-
         try (PreparedStatement pst = ConexionBD.getConexionBD().prepareStatement(sql)) {
 
-            ResultSet rs = pst.executeQuery();
-            UsuarioListado usuarioListado;
-
-            while (rs.next()) {
-                usuarioListado = new UsuarioListado();
-                usuarioListado.setDni(rs.getString(1));
-                usuarioListado.setNombre(rs.getString(2));
-                usuarioListado.setMatricula(rs.getString(3));
-                usuarioListado.setDescuento(rs.getObject(4, Double.class));
-                usuarios.add(usuarioListado);
-            }
+            pst.setString(1, nombre);
+            pst.setString(2, matricula);
+            pst.setString(3, dni);
+            pst.executeUpdate();
 
         } catch (SQLException e) {
-            throw new Exception("Error en listadoUsuarios!!");
+            throw new Exception("Error en modificarUsuario", e);
         }
 
     }

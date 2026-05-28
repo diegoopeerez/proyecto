@@ -12,12 +12,6 @@ public class Plaza {
     protected int numeroPlaza;
     protected EstadoPlaza estado;
 
-    protected enum EstadoPlaza {
-        LIBRE,
-        OCUPADA,
-        FUERA_DE_SERVICIO
-    }
-
     public Plaza() {
         numeroPlaza = 0;
     }
@@ -26,82 +20,33 @@ public class Plaza {
         this.numeroPlaza = numeroPlaza;
     }
 
-    public int getNumeroPlaza() {
-        return numeroPlaza;
-    }
-
-    public void setNumeroPlaza(int numeroPlaza) {
-        this.numeroPlaza = numeroPlaza;
-    }
-
-    public String getEstado() {
-        return estado.toString();
-    }
-
-    public void setEstado(String op) {
-        switch (op) {
-            case "LIBRE":
-                estado = EstadoPlaza.LIBRE;
-                break;
-            case "OCUPADA":
-                estado = EstadoPlaza.OCUPADA;
-                break;
-            case "FUERA_DE_SERVICIO":
-                estado = EstadoPlaza.FUERA_DE_SERVICIO;
-                break;
-        }
-    }
-
-    public boolean existePlaza() throws Exception {
-
-        String sql = "SELECT * from plaza WHERE numeroPlaza = ?";
-
+    // NUEVO: genera automáticamente el siguiente número de plaza disponible
+    // Formato 000001, 000002... (se almacena como INT, se muestra con formato)
+    public static int siguientePlaza() throws Exception {
+        String sql = "SELECT COALESCE(MAX(numeroPlaza), 0) + 1 FROM plaza";
         try (PreparedStatement pst = ConexionBD.getConexionBD().prepareStatement(sql)) {
-
-            pst.setInt(1, numeroPlaza);
-
             ResultSet rs = pst.executeQuery();
-            return rs.next();
-
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+            return 1;
         } catch (SQLException e) {
-            throw new Exception("Error en existePlaza!!");
+            throw new Exception("Error en siguientePlaza!!", e);
         }
-
     }
 
-    public void altaPlaza() throws Exception {
-
-        if (existePlaza()) {
-            throw new Exception("La plaza ya existe!!");
-        }
-
-        String sql = "INSERT INTO plaza VALUES(?,?,?,?)";
-
+    // NUEVO: devuelve el número de la primera plaza que esté LIBRE
+    // Lanza excepción si no hay ninguna disponible
+    public static int plazaLibre() throws Exception {
+        String sql = "SELECT numeroPlaza FROM plaza WHERE estado = 'LIBRE' LIMIT 1";
         try (PreparedStatement pst = ConexionBD.getConexionBD().prepareStatement(sql)) {
-
-            pst.setInt(1, numeroPlaza);
-            pst.setString(2, estado.toString());
-            pst.setNull(3, java.sql.Types.DECIMAL);
-            pst.setNull(4, java.sql.Types.DECIMAL);
-            pst.executeUpdate();
-
+            ResultSet rs = pst.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+            throw new Exception("No hay plazas libres disponibles");
         } catch (SQLException e) {
-            throw new Exception("Error en altaPlaza!!");
-        }
-
-    }
-
-    public void bajaPlaza() throws Exception {
-
-        String sql = "UPDATE plaza SET estado = 'FUERA_DE_SERVICIO' WHERE numeroPlaza = ?";
-
-        try (PreparedStatement pst = ConexionBD.getConexionBD().prepareStatement(sql)) {
-
-            pst.setInt(1, numeroPlaza);
-            pst.executeUpdate();
-
-        } catch (SQLException e) {
-            throw new Exception("Error en bajaPlaza!!", e);
+            throw new Exception("Error en plazaLibre!!", e);
         }
     }
 
@@ -124,9 +69,99 @@ public class Plaza {
             }
 
         } catch (SQLException e) {
-            throw new Exception("Error en listadoPlaza!!");
+            throw new Exception("Error en listadoPlaza!!", e);
         }
 
+    }
+
+    public int getNumeroPlaza() {
+        return numeroPlaza;
+    }
+
+    public void setNumeroPlaza(int numeroPlaza) {
+        this.numeroPlaza = numeroPlaza;
+    }
+
+    public String getEstado() {
+        return estado.toString();
+    }
+
+    // CORREGIDO: añadido default para evitar NullPointerException si el valor
+    // de la BD no coincide con ningún caso del switch
+    public void setEstado(String op) {
+        switch (op) {
+            case "LIBRE":
+                estado = EstadoPlaza.LIBRE;
+                break;
+            case "OCUPADA":
+                estado = EstadoPlaza.OCUPADA;
+                break;
+            case "FUERA_DE_SERVICIO":
+                estado = EstadoPlaza.FUERA_DE_SERVICIO;
+                break;
+            default:
+                throw new IllegalArgumentException("Estado de plaza desconocido: " + op);
+        }
+    }
+
+    public boolean existePlaza() throws Exception {
+
+        String sql = "SELECT * from plaza WHERE numeroPlaza = ?";
+
+        try (PreparedStatement pst = ConexionBD.getConexionBD().prepareStatement(sql)) {
+
+            pst.setInt(1, numeroPlaza);
+            ResultSet rs = pst.executeQuery();
+            return rs.next();
+
+        } catch (SQLException e) {
+            throw new Exception("Error en existePlaza!!", e);
+        }
+
+    }
+
+    public void altaPlaza() throws Exception {
+
+        this.numeroPlaza = siguientePlaza();
+
+        if (existePlaza()) {
+            throw new Exception("La plaza ya existe!!");
+        }
+
+        String sql = "INSERT INTO plaza VALUES(?,?,?,?)";
+
+        try (PreparedStatement pst = ConexionBD.getConexionBD().prepareStatement(sql)) {
+
+            pst.setInt(1, numeroPlaza);
+            pst.setString(2, estado.toString());
+            pst.setNull(3, java.sql.Types.DECIMAL);
+            pst.setNull(4, java.sql.Types.DECIMAL);
+            pst.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new Exception("Error en altaPlaza!!", e);
+        }
+
+    }
+
+    public void bajaPlaza() throws Exception {
+
+        String sql = "UPDATE plaza SET estado = 'FUERA_DE_SERVICIO' WHERE numeroPlaza = ?";
+
+        try (PreparedStatement pst = ConexionBD.getConexionBD().prepareStatement(sql)) {
+
+            pst.setInt(1, numeroPlaza);
+            pst.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new Exception("Error en bajaPlaza!!", e);
+        }
+    }
+
+    protected enum EstadoPlaza {
+        LIBRE,
+        OCUPADA,
+        FUERA_DE_SERVICIO
     }
 
     public static class PlazaListado extends Plaza {
@@ -155,6 +190,5 @@ public class Plaza {
             this.descuento = descuento;
         }
     }
-
 
 }
