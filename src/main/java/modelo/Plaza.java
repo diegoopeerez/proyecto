@@ -10,12 +10,11 @@ import java.util.List;
 public class Plaza {
 
     protected int numeroPlaza;
-    protected EstadoPlaza categoria;
+    protected EstadoPlaza estado;
 
     protected enum EstadoPlaza {
         LIBRE,
         OCUPADA,
-        RESERVADA,
         FUERA_DE_SERVICIO
     }
 
@@ -35,23 +34,20 @@ public class Plaza {
         this.numeroPlaza = numeroPlaza;
     }
 
-    public String getCategoria() {
-        return categoria.toString();
+    public String getEstado() {
+        return estado.toString();
     }
 
-    public void setCategoria(String op) {
+    public void setEstado(String op) {
         switch (op) {
             case "LIBRE":
-                categoria = EstadoPlaza.LIBRE;
+                estado = EstadoPlaza.LIBRE;
                 break;
             case "OCUPADA":
-                categoria = EstadoPlaza.OCUPADA;
-                break;
-            case "RESERVADA":
-                categoria = EstadoPlaza.RESERVADA;
+                estado = EstadoPlaza.OCUPADA;
                 break;
             case "FUERA_DE_SERVICIO":
-                categoria = EstadoPlaza.FUERA_DE_SERVICIO;
+                estado = EstadoPlaza.FUERA_DE_SERVICIO;
                 break;
         }
     }
@@ -84,7 +80,7 @@ public class Plaza {
         try (PreparedStatement pst = ConexionBD.getConexionBD().prepareStatement(sql)) {
 
             pst.setInt(1, numeroPlaza);
-            pst.setString(2, categoria.toString());
+            pst.setString(2, estado.toString());
             pst.setNull(3, java.sql.Types.DECIMAL);
             pst.setNull(4, java.sql.Types.DECIMAL);
             pst.executeUpdate();
@@ -97,7 +93,7 @@ public class Plaza {
 
     public void bajaPlaza() throws Exception {
 
-        String sql = "UPDATE FROM plaza SET categoria = 'FUERA_DE_SERVICIO' WHERE numeroPlaza = ?";
+        String sql = "UPDATE plaza SET estado = 'FUERA_DE_SERVICIO' WHERE numeroPlaza = ?";
 
         try (PreparedStatement pst = ConexionBD.getConexionBD().prepareStatement(sql)) {
 
@@ -109,7 +105,7 @@ public class Plaza {
         }
     }
 
-    public static void listadoPlaza(List<Plaza> plazas) throws Exception {
+    public static void listadoPlaza(List<PlazaListado> plazas) throws Exception {
 
         String sql = "SELECT * from plaza ORDER BY numeroPlaza";
 
@@ -121,7 +117,7 @@ public class Plaza {
             while (rs.next()) {
                 plazaListado = new PlazaListado();
                 plazaListado.setNumeroPlaza(rs.getInt(1));
-                plazaListado.setCategoria(rs.getString(2));
+                plazaListado.setEstado(rs.getString(2));
                 plazaListado.setDescuento(rs.getObject(3, Double.class));
                 plazaListado.setPrecioCarga(rs.getObject(4, Double.class));
                 plazas.add(plazaListado);

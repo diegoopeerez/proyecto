@@ -150,7 +150,6 @@ public class Usuario {
     }
 
     public static class UsuarioListado extends Usuario {
-        ;
         private Double descuento;
 
         public UsuarioListado() {

@@ -38,7 +38,7 @@ public class PlazaElectrica extends Plaza {
         try (PreparedStatement pst = ConexionBD.getConexionBD().prepareStatement(sql)) {
 
             pst.setInt(1, numeroPlaza);
-            pst.setString(2, categoria.toString());
+            pst.setString(2, estado.toString());
             pst.setNull(3, java.sql.Types.DECIMAL);
             pst.setDouble(4, precioCarga);
             pst.executeUpdate();

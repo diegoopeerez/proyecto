@@ -38,7 +38,7 @@ public class PlazaMinusvalida extends Plaza {
         try (PreparedStatement pst = ConexionBD.getConexionBD().prepareStatement(sql)) {
 
             pst.setInt(1, numeroPlaza);
-            pst.setString(2, categoria.toString());
+            pst.setString(2, estado.toString());
             pst.setDouble(3, descuento);
             pst.setNull(4, java.sql.Types.DECIMAL);
             pst.executeUpdate();
