@@ -8,6 +8,13 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
 
+/**
+ * Clase de utilidad encargada de gestionar la conexión con la base de datos MySQL.
+ * Proporciona métodos estáticos para inicializar la conexión, crear la estructura
+ * de tablas necesaria al arrancar y liberar los recursos al finalizar la ejecución.
+ * @author Diego Perez, Adrian Cava
+ * @version 1.0
+ */
 public class ConexionBD {
 
     /* Atributos **************************************************************/
@@ -15,6 +22,9 @@ public class ConexionBD {
 
     /* Constructores **********************************************************/
     // CORREGIDO: el constructor no debe tocar el campo static
+    /**
+     * Constructor por defecto.
+     */
     public ConexionBD() {
     }
 
@@ -24,6 +34,11 @@ public class ConexionBD {
     }
 
     /* Métodos ****************************************************************/
+    /**
+     * Ejecuta las sentencias DDL para crear las tablas necesarias (usuario, plaza y reserva)
+     * en el esquema de base de datos si estas aún no existen.
+     * * @throws Exception Si ocurre un error al ejecutar las consultas SQL de creación.
+     */
     private static void crearTablas() throws Exception {
         String sql;
         try (Statement st = conexionBD.createStatement()) {
@@ -60,6 +75,12 @@ public class ConexionBD {
         }
     }
 
+    /**
+     * Lee el archivo de configuración 'dbproperties.txt', establece la conexión con el
+     * servidor de base de datos y procede a verificar/crear la estructura de tablas.
+     * * @throws Exception Si no se encuentra o no se puede leer el archivo de propiedades,
+     * o si falla la conexión con el servidor MySQL.
+     */
     public static void abrirConexion() throws Exception {
         try (FileInputStream fis = new FileInputStream("dbproperties.txt")) {
             Properties props = new Properties();
@@ -77,6 +98,11 @@ public class ConexionBD {
         }
     }
 
+    /**
+     * Cierra la conexión activa con la base de datos de forma segura para liberar
+     * los recursos del sistema.
+     * * @throws Exception Si ocurre un error durante el proceso de cierre de la conexión.
+     */
     public static void cerrarConexion() throws Exception {
         try {
             if (conexionBD != null) {

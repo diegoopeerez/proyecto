@@ -7,23 +7,44 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
+/**
+ * Clase que representa el modelo de un usuario en el sistema.
+ * Gestiona la persistencia de los datos del cliente y su vinculación con la base de datos.
+ *
+ * @author Diego Perez, Adrian Cava
+ * @version 1.0
+ */
 public class Usuario {
     protected String dni;
     protected String nombre;
     protected String matricula;
 
+    /**
+     * Constructor por defecto que inicializa al usuario con valores vacíos.
+     */
     public Usuario() {
         dni = "";
         nombre = "";
         matricula = "";
     }
 
+    /**
+     * Constructor sobrecargado que inicializa a un usuario con su DNI.
+     *
+     * @param dni El DNI único del usuario.
+     */
     public Usuario(String dni) {
         this.dni = dni;
         this.nombre = "";
         this.matricula = "";
     }
 
+    /**
+     * Carga en una lista proporcionada el listado de todos los usuarios registrados.
+     *
+     * @param usuarios Lista de objetos {@link UsuarioListado} donde se añadirán los resultados.
+     * @throws Exception Si ocurre un error al consultar la tabla de usuarios.
+     */
     public static void listadoUsuario(List<UsuarioListado> usuarios) throws Exception {
 
         String sql = "SELECT * from usuario ORDER BY dni";
@@ -72,6 +93,12 @@ public class Usuario {
         this.matricula = matricula;
     }
 
+    /**
+     * Verifica si el usuario actual ya existe en la base de datos según su DNI.
+     *
+     * @return {@code true} si el usuario existe, {@code false} en caso contrario.
+     * @throws Exception Si ocurre un error al ejecutar la consulta SQL.
+     */
     public boolean existeUsuario() throws Exception {
 
         String sql = "SELECT * from usuario WHERE dni = ?";
@@ -88,6 +115,11 @@ public class Usuario {
 
     }
 
+    /**
+     * Registra un nuevo usuario en la base de datos.
+     *
+     * @throws Exception Si el usuario ya existe o hay un error de inserción.
+     */
     public void altaUsuario() throws Exception {
 
         if (existeUsuario()) {
@@ -110,6 +142,11 @@ public class Usuario {
 
     }
 
+    /**
+     * Elimina al usuario actual de la base de datos basándose en su DNI.
+     *
+     * @throws Exception Si ocurre un error durante la ejecución del borrado.
+     */
     public void bajaUsuario() throws Exception {
 
         String sql = "DELETE FROM usuario WHERE dni = ?";
@@ -127,6 +164,13 @@ public class Usuario {
     // CORREGIDO: antes hacía try (Connection con = ConexionBD.getConexionBD())
     // lo que cerraba la conexión compartida al salir del bloque, dejando
     // la aplicación entera sin conexión a partir de ese momento.
+    /**
+     * Modifica los datos personales de un usuario existente.
+     *
+     * @param nombre    El nuevo nombre para el usuario.
+     * @param matricula La nueva matrícula del vehículo.
+     * @throws Exception Si ocurre un error durante la actualización en la base de datos.
+     */
     public void modificarUsuario(String nombre, String matricula) throws Exception {
 
         String sql = "UPDATE Usuario SET nombre = ?, matricula = ? WHERE DNI = ?";
@@ -143,7 +187,9 @@ public class Usuario {
         }
 
     }
-
+    /**
+     * Clase interna que extiende de {@link Usuario} para incluir información adicional de descuentos.
+     */
     public static class UsuarioListado extends Usuario {
         private Double descuento;
 

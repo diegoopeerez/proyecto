@@ -7,6 +7,14 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Clase que gestiona el ciclo de vida de una reserva de plaza de aparcamiento.
+ * Controla la persistencia, el cálculo de costes basado en estancias y descuentos,
+ * y la actualización sincronizada del estado de las plazas.
+ *
+ * @author Diego Perez, Adrian Cava
+ * @version 1.0
+ */
 public class Reserva {
 
     private static final double PRECIO_HORA = 2.5;
@@ -18,6 +26,9 @@ public class Reserva {
     private LocalDateTime fechaHoraEntrada;
     private double coste;
 
+    /**
+     * Constructor por defecto. Inicializa una nueva reserva con la hora de entrada actual.
+     */
     public Reserva() {
         numeroReserva = 0;
         dniCliente = "";
@@ -27,6 +38,13 @@ public class Reserva {
         coste = 0.0;
     }
 
+    /**
+     * Constructor sobrecargado para identificar una reserva existente.
+     *
+     * @param numeroReserva Identificador único de la reserva.
+     * @param dniCliente    DNI del cliente que realiza la reserva.
+     * @param numeroPlaza   Número de la plaza reservada.
+     */
     public Reserva(int numeroReserva, String dniCliente, int numeroPlaza) {
         this.numeroReserva = numeroReserva;
         this.dniCliente = dniCliente;
@@ -37,6 +55,12 @@ public class Reserva {
     }
 
     // NUEVO: genera automáticamente el siguiente número de reserva disponible
+    /**
+     * Genera automáticamente el siguiente identificador de reserva disponible en la base de datos.
+     *
+     * @return El siguiente número entero para una reserva nueva.
+     * @throws Exception Si ocurre un error al consultar la base de datos.
+     */
     public static int siguienteReserva() throws Exception {
         String sql = "SELECT COALESCE(MAX(numeroReserva), 0) + 1 FROM reserva";
         try (PreparedStatement pst = ConexionBD.getConexionBD().prepareStatement(sql)) {
@@ -50,6 +74,12 @@ public class Reserva {
         }
     }
 
+    /**
+     * Recupera todas las reservas registradas y las carga en la lista proporcionada.
+     *
+     * @param reservas Lista donde se almacenarán las instancias de {@link Reserva} recuperadas.
+     * @throws Exception Si ocurre un error durante la consulta SQL.
+     */
     public static void listadoReserva(List<Reserva> reservas) throws Exception {
 
         String sql = "SELECT * from reserva ORDER BY numeroReserva";
@@ -126,6 +156,13 @@ public class Reserva {
         this.coste = coste;
     }
 
+    /**
+     * Verifica si existe una reserva registrada en la base de datos con el número
+     * asignado a la instancia actual.
+     *
+     * @return {@code true} si se encuentra la reserva, {@code false} en caso contrario.
+     * @throws Exception Si ocurre un error de ejecución con la base de datos.
+     */
     public boolean existeReserva() throws Exception {
 
         String sql = "SELECT * from reserva WHERE numeroReserva = ?";
@@ -146,6 +183,13 @@ public class Reserva {
     // - numeroReserva se genera automáticamente con siguienteReserva()
     // - numeroPlaza se asigna automáticamente con Plaza.plazaLibre()
     // CORREGIDO: eliminado try-with-resources sobre Connection (cerraba la conexión compartida)
+    /**
+     * Registra una nueva reserva en el sistema y marca la plaza correspondiente como 'OCUPADA'.
+     * Esta operación es transaccional: si el registro de la reserva o la actualización
+     * de la plaza falla, se revertirán todos los cambios.
+     *
+     * @throws Exception Si la reserva ya existe o ocurre un fallo de integridad en la base de datos.
+     */
     public void altaReserva() throws Exception {
 
         // Auto-generar número de reserva
@@ -198,6 +242,15 @@ public class Reserva {
     //   - Si la plaza es minusválida (tiene descuento en BD): se aplica ese % de descuento
     //   - Los descuentos se suman entre sí
     //   - Si la plaza es eléctrica (tiene precioCarga): se suma al coste final
+    /**
+     * Finaliza una reserva activa, calcula el coste basado en el tiempo de estancia,
+     * aplica descuentos acumulados (usuario y plaza) y libera la plaza en el sistema.
+     * <p>
+     * Lógica de cálculo: {@code (horas * precio) * (1 - descuentos) + precioCarga}.
+     * </p>
+     *
+     * @throws Exception Si los datos no coinciden, la reserva no existe o hay error de SQL.
+     */
     public void bajaReserva() throws Exception {
 
         String sqlSelect = "SELECT r.fechaHoraEntrada, "

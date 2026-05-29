@@ -2,13 +2,31 @@ package vista;
 
 import datos.ConexionBD;
 import modelo.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-public class Main {
 
+/**
+ * Clase principal que actúa como punto de entrada (CLI - Interfaz de Línea de Comandos)
+ * para la aplicación de gestión de un aparcamiento.
+ * <p>
+ * Esta clase orquesta el ciclo de vida de la aplicación:
+ * <ul>
+ * <li>Gestiona la apertura y cierre de la conexión con la base de datos.</li>
+ * <li>Presenta el menú interactivo para la gestión de usuarios, plazas y reservas.</li>
+ * <li>Invoca los métodos del paquete {@code modelo} para procesar las operaciones solicitadas.</li>
+ * </ul>
+ *
+ * @author Diego Perez, Adrian Cava
+ * @version 1.0
+ */
+public class Main {
+    /**
+     * Muestra el menú de opciones principales por consola y captura la selección del usuario.
+     *
+     * @return El número entero de la opción elegida por el usuario.
+     */
     public static int menu() {
         int op;
         Scanner sc = new Scanner(System.in);
