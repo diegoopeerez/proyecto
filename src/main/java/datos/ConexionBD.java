@@ -40,7 +40,8 @@ public class ConexionBD {
     /**
      * Ejecuta las sentencias DDL para crear las tablas necesarias (usuario, plaza y reserva)
      * en el esquema de base de datos si estas aún no existen.
-     * * @throws Exception Si ocurre un error al ejecutar las consultas SQL de creación.
+     *
+     * @throws Exception Si ocurre un error al ejecutar las consultas SQL de creación.
      */
     private static void crearTablas() throws Exception {
         String sql;
@@ -59,12 +60,6 @@ public class ConexionBD {
                     + "precioCarga DECIMAL(5,2))";
             st.executeUpdate(sql);
 
-            // CORREGIDO: eliminado UNIQUE en numeroPlaza.
-            // Con UNIQUE solo podría haber UNA reserva por plaza en toda la historia;
-            // al liberar una plaza y volver a reservarla, la INSERT fallaba.
-            // CORREGIDO: clave primaria compuesta (numeroReserva, dniCliente, numeroPlaza),
-            // que refleja correctamente el modelo de negocio: una reserva la identifica
-            // de forma unívoca la combinación de los tres campos.
             sql = "CREATE TABLE IF NOT EXISTS reserva("
                     + "numeroReserva INT NOT NULL, "
                     + "dniCliente VARCHAR(9) NOT NULL, "
@@ -85,8 +80,9 @@ public class ConexionBD {
     /**
      * Lee el archivo de configuración 'dbproperties.txt', establece la conexión con el
      * servidor de base de datos y procede a verificar/crear la estructura de tablas.
-     * * @throws Exception Si no se encuentra o no se puede leer el archivo de propiedades,
-     * o si falla la conexión con el servidor MySQL.
+     *
+     * @throws Exception Si no se encuentra o no se puede leer el archivo de propiedades,
+     *                   o si falla la conexión con el servidor MySQL.
      */
     public static void abrirConexion() throws Exception {
         try (FileInputStream fis = new FileInputStream("dbproperties.txt")) {
@@ -108,7 +104,8 @@ public class ConexionBD {
     /**
      * Cierra la conexión activa con la base de datos de forma segura para liberar
      * los recursos del sistema.
-     * * @throws Exception Si ocurre un error durante el proceso de cierre de la conexión.
+     *
+     * @throws Exception Si ocurre un error durante el proceso de cierre de la conexión.
      */
     public static void cerrarConexion() throws Exception {
         try {

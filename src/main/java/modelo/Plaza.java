@@ -225,7 +225,9 @@ public class Plaza {
      * lo gestiona el sistema al crear una reserva.
      *
      * @param nuevoEstado El nuevo estado a asignar (LIBRE o FUERA_DE_SERVICIO).
-     * @throws Exception Si el estado es inválido, la plaza no existe o está OCUPADA.
+     * @throws IllegalArgumentException Si {@code nuevoEstado} no es un valor reconocido por el enum.
+     * @throws Exception                Si se intenta asignar OCUPADA manualmente, la plaza no existe,
+     *                                  o se produce un error en la base de datos.
      */
     public void modificarEstadoPlaza(String nuevoEstado) throws Exception {
 
@@ -234,12 +236,12 @@ public class Plaza {
                     "Ese estado lo gestiona el sistema al crear una reserva.");
         }
 
-        // Validar el estado antes de la consulta (setEstado lanza IllegalArgumentException)
-        setEstado(nuevoEstado);
-
         if (!existePlaza()) {
             throw new Exception("La plaza " + String.format("%06d", numeroPlaza) + " no existe");
         }
+
+        // Validar el estado antes de la consulta (setEstado lanza IllegalArgumentException)
+        setEstado(nuevoEstado);
 
         String sql = "UPDATE plaza SET estado = ? WHERE numeroPlaza = ?";
         try (PreparedStatement pst = ConexionBD.getConexionBD().prepareStatement(sql)) {

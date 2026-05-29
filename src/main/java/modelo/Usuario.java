@@ -165,10 +165,6 @@ public class Usuario {
         }
     }
 
-    // CORREGIDO: antes hacía try (Connection con = ConexionBD.getConexionBD())
-    // lo que cerraba la conexión compartida al salir del bloque, dejando
-    // la aplicación entera sin conexión a partir de ese momento.
-
     /**
      * Modifica los datos personales de un usuario existente.
      *

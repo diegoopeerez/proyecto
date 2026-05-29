@@ -239,7 +239,7 @@ public class Reserva {
             throw new Exception("La reserva " + String.format("%06d", numeroReserva) + " no existe");
         }
 
-        // NUEVO: consulta extendida que también recupera fechaHoraSalida
+        // consulta extendida que también recupera fechaHoraSalida
         // para detectar si la reserva ya fue cerrada
         String sqlSelect = "SELECT r.fechaHoraEntrada, "
                 + "r.fechaHoraSalida, "
@@ -277,7 +277,7 @@ public class Reserva {
                     throw new Exception("La reserva no existe o los datos introducidos no coinciden");
                 }
 
-                // NUEVO: si ya tiene fecha de salida, la reserva ya fue cerrada
+                // si ya tiene fecha de salida, la reserva ya fue cerrada
                 Timestamp tsSalida = rs.getTimestamp("fechaHoraSalida");
                 if (tsSalida != null) {
                     throw new Exception("La reserva " + String.format("%06d", numeroReserva)
@@ -293,7 +293,7 @@ public class Reserva {
 
             LocalDateTime fechaSalida = LocalDateTime.now();
 
-            // CORREGIDO: coste proporcional al minuto (30 min → 1.25 €, no redondeo a hora)
+            // coste proporcional al minuto (30 min → 1.25 €, no redondeo a hora)
             long minutos = Duration.between(fechaEntrada, fechaSalida).toMinutes();
             double horas = minutos / 60.0;
             double costeBase = horas * PRECIO_HORA;
