@@ -54,9 +54,8 @@ public class Reserva {
         this.coste = 0.0;
     }
 
-    // NUEVO: genera automáticamente el siguiente número de reserva disponible
     /**
-     * Genera automáticamente el siguiente identificador de reserva disponible en la base de datos.
+     * Genera automáticamente el siguiente identificador de reserva disponible.
      *
      * @return El siguiente número entero para una reserva nueva.
      * @throws Exception Si ocurre un error al consultar la base de datos.
@@ -81,31 +80,24 @@ public class Reserva {
      * @throws Exception Si ocurre un error durante la consulta SQL.
      */
     public static void listadoReserva(List<Reserva> reservas) throws Exception {
-
         String sql = "SELECT * from reserva ORDER BY numeroReserva";
-
         try (PreparedStatement pst = ConexionBD.getConexionBD().prepareStatement(sql)) {
-
             ResultSet rs = pst.executeQuery();
             Reserva reserva;
-
             while (rs.next()) {
                 reserva = new Reserva();
                 reserva.setNumeroReserva(rs.getInt(1));
                 reserva.setDniCliente(rs.getString(2));
                 reserva.setNumeroPlaza(rs.getInt(3));
-                // fechaHoraSalida puede ser null si la reserva sigue activa
                 Timestamp tsSalida = rs.getTimestamp(4);
                 reserva.setFechaHoraSalida(tsSalida != null ? tsSalida.toLocalDateTime() : null);
                 reserva.setFechaHoraEntrada(rs.getTimestamp(5).toLocalDateTime());
                 reserva.setCoste(rs.getDouble(6));
                 reservas.add(reserva);
             }
-
         } catch (SQLException e) {
             throw new Exception("Error en listadoReserva!!", e);
         }
-
     }
 
     public int getNumeroReserva() {
@@ -157,38 +149,30 @@ public class Reserva {
     }
 
     /**
-     * Verifica si existe una reserva registrada en la base de datos con el número
-     * asignado a la instancia actual.
+     * Verifica si existe una reserva con el número asignado a la instancia actual.
      *
      * @return {@code true} si se encuentra la reserva, {@code false} en caso contrario.
      * @throws Exception Si ocurre un error de ejecución con la base de datos.
      */
     public boolean existeReserva() throws Exception {
-
-        String sql = "SELECT * from reserva WHERE numeroReserva = ?";
-
+        String sql = "SELECT * FROM reserva WHERE numeroReserva = ? AND dniCliente = ? AND numeroPlaza = ?";
         try (PreparedStatement pst = ConexionBD.getConexionBD().prepareStatement(sql)) {
-
             pst.setInt(1, numeroReserva);
+            pst.setString(2, dniCliente);
+            pst.setInt(3, numeroPlaza);
             ResultSet rs = pst.executeQuery();
             return rs.next();
-
         } catch (SQLException e) {
             throw new Exception("Error en existeReserva!!", e);
         }
-
     }
 
-    // CORREGIDO: ya no pide numeroReserva ni numeroPlaza manualmente.
-    // - numeroReserva se genera automáticamente con siguienteReserva()
-    // - numeroPlaza se asigna automáticamente con Plaza.plazaLibre()
-    // CORREGIDO: eliminado try-with-resources sobre Connection (cerraba la conexión compartida)
     /**
-     * Registra una nueva reserva en el sistema y marca la plaza correspondiente como 'OCUPADA'.
-     * Esta operación es transaccional: si el registro de la reserva o la actualización
-     * de la plaza falla, se revertirán todos los cambios.
+     * Registra una nueva reserva y marca la plaza como OCUPADA.
+     * El número de reserva y la plaza se asignan automáticamente.
+     * Operación transaccional: si algo falla se revierte todo.
      *
-     * @throws Exception Si la reserva ya existe o ocurre un fallo de integridad en la base de datos.
+     * @throws Exception Si no hay plazas libres, el usuario no existe o hay error de BD.
      */
     public void altaReserva() throws Exception {
 
@@ -199,7 +183,7 @@ public class Reserva {
         this.numeroPlaza = Plaza.plazaLibre();
 
         if (existeReserva()) {
-            throw new Exception("La reserva ya existe!!");
+            throw new Exception("La reserva " + String.format("%06d", numeroReserva) + " ya existe");
         }
 
         String sqlReserva = "INSERT INTO reserva VALUES(?,?,?,?,?,?)";
@@ -212,7 +196,6 @@ public class Reserva {
                 PreparedStatement pstReserva = con.prepareStatement(sqlReserva);
                 PreparedStatement pstPlaza = con.prepareStatement(sqlPlaza)
         ) {
-            // INSERT reserva
             pstReserva.setInt(1, numeroReserva);
             pstReserva.setString(2, dniCliente);
             pstReserva.setInt(3, numeroPlaza);
@@ -221,7 +204,6 @@ public class Reserva {
             pstReserva.setNull(6, java.sql.Types.DECIMAL);
             pstReserva.executeUpdate();
 
-            // UPDATE plaza → OCUPADA
             pstPlaza.setString(1, "OCUPADA");
             pstPlaza.setInt(2, numeroPlaza);
             pstPlaza.executeUpdate();
@@ -236,24 +218,31 @@ public class Reserva {
         }
     }
 
-    // CORREGIDO: eliminado try-with-resources sobre Connection (cerraba la conexión compartida)
-    // NUEVO: cálculo de coste con descuentos:
-    //   - Si el cliente es VIP (tiene descuento en BD): se aplica ese % de descuento
-    //   - Si la plaza es minusválida (tiene descuento en BD): se aplica ese % de descuento
-    //   - Los descuentos se suman entre sí
-    //   - Si la plaza es eléctrica (tiene precioCarga): se suma al coste final
     /**
-     * Finaliza una reserva activa, calcula el coste basado en el tiempo de estancia,
-     * aplica descuentos acumulados (usuario y plaza) y libera la plaza en el sistema.
+     * Finaliza una reserva activa, calcula el coste proporcional al tiempo real de estancia
+     * y libera la plaza en el sistema.
      * <p>
-     * Lógica de cálculo: {@code (horas * precio) * (1 - descuentos) + precioCarga}.
-     * </p>
+     * Lógica de cálculo:
+     * <ul>
+     *   <li>Coste base = (minutos / 60.0) * {@value #PRECIO_HORA} €/h → proporcional al minuto</li>
+     *   <li>Si el cliente es VIP, se descuenta su porcentaje sobre el coste base</li>
+     *   <li>Si la plaza es minusválida, se suma ese descuento adicional</li>
+     *   <li>Si la plaza es eléctrica, se suma el precioCarga al total final</li>
+     * </ul>
+     * Operación transaccional: si algo falla se revierte todo.
      *
-     * @throws Exception Si los datos no coinciden, la reserva no existe o hay error de SQL.
+     * @throws Exception Si la reserva no existe, ya fue cerrada anteriormente, o hay error de BD.
      */
     public void bajaReserva() throws Exception {
 
+        if (!existeReserva()) {
+            throw new Exception("La reserva " + String.format("%06d", numeroReserva) + " no existe");
+        }
+
+        // NUEVO: consulta extendida que también recupera fechaHoraSalida
+        // para detectar si la reserva ya fue cerrada
         String sqlSelect = "SELECT r.fechaHoraEntrada, "
+                + "r.fechaHoraSalida, "
                 + "u.descuento AS descuentoUsuario, "
                 + "p.descuento AS descuentoPlaza, "
                 + "p.precioCarga "
@@ -262,7 +251,8 @@ public class Reserva {
                 + "JOIN plaza p ON r.numeroPlaza = p.numeroPlaza "
                 + "WHERE r.numeroReserva = ? AND r.dniCliente = ? AND r.numeroPlaza = ?";
 
-        String sqlUpdateReserva = "UPDATE reserva SET fechaHoraSalida = ?, coste = ? WHERE numeroReserva = ? AND dniCliente = ? AND numeroPlaza = ?";
+        String sqlUpdateReserva = "UPDATE reserva SET fechaHoraSalida = ?, coste = ? "
+                + "WHERE numeroReserva = ? AND dniCliente = ? AND numeroPlaza = ?";
 
         String sqlUpdatePlaza = "UPDATE plaza SET estado = ? WHERE numeroPlaza = ?";
 
@@ -275,7 +265,6 @@ public class Reserva {
             Double descuentoPlaza;
             Double precioCarga;
 
-            // Obtener datos de la reserva, usuario y plaza en una sola consulta
             try (PreparedStatement pstSelect = con.prepareStatement(sqlSelect)) {
 
                 pstSelect.setInt(1, numeroReserva);
@@ -285,7 +274,15 @@ public class Reserva {
                 ResultSet rs = pstSelect.executeQuery();
 
                 if (!rs.next()) {
-                    throw new Exception("La reserva no existe o los datos no coinciden");
+                    throw new Exception("La reserva no existe o los datos introducidos no coinciden");
+                }
+
+                // NUEVO: si ya tiene fecha de salida, la reserva ya fue cerrada
+                Timestamp tsSalida = rs.getTimestamp("fechaHoraSalida");
+                if (tsSalida != null) {
+                    throw new Exception("La reserva " + String.format("%06d", numeroReserva)
+                            + " ya fue cerrada el " + tsSalida.toLocalDateTime()
+                            + ". No se puede dar de baja de nuevo.");
                 }
 
                 fechaEntrada = rs.getTimestamp("fechaHoraEntrada").toLocalDateTime();
@@ -294,31 +291,24 @@ public class Reserva {
                 precioCarga = rs.getObject("precioCarga", Double.class);
             }
 
-            // Fecha y hora de salida = ahora
             LocalDateTime fechaSalida = LocalDateTime.now();
 
-            // Horas redondeadas hacia arriba (mínimo 1 hora)
+            // CORREGIDO: coste proporcional al minuto (30 min → 1.25 €, no redondeo a hora)
             long minutos = Duration.between(fechaEntrada, fechaSalida).toMinutes();
-            double horas = Math.max(1, Math.ceil(minutos / 60.0));
-
-            // Coste base
+            double horas = minutos / 60.0;
             double costeBase = horas * PRECIO_HORA;
 
-            // Descuento total = descuento VIP + descuento plaza minusválida (ambos en %)
-            // Si ninguno aplica, descuentoTotal = 0
+            // Descuentos acumulados (VIP + minusválida), máximo 100%
             double descuentoTotal = (descuentoUsuario != null ? descuentoUsuario : 0.0)
                     + (descuentoPlaza != null ? descuentoPlaza : 0.0);
-
-            // Aplicar descuento (máximo 100%)
             if (descuentoTotal > 100.0) descuentoTotal = 100.0;
+
             double costeConDescuento = costeBase * (1.0 - descuentoTotal / 100.0);
 
-            // Si la plaza es eléctrica, sumar precio de carga
+            // Si plaza eléctrica, sumar precio de carga
             double costeTotal = costeConDescuento + (precioCarga != null ? precioCarga : 0.0);
 
-            // UPDATE reserva con fecha salida y coste final
             try (PreparedStatement pstUpdateReserva = con.prepareStatement(sqlUpdateReserva)) {
-
                 pstUpdateReserva.setTimestamp(1, Timestamp.valueOf(fechaSalida));
                 pstUpdateReserva.setDouble(2, costeTotal);
                 pstUpdateReserva.setInt(3, numeroReserva);
@@ -327,9 +317,7 @@ public class Reserva {
                 pstUpdateReserva.executeUpdate();
             }
 
-            // UPDATE plaza → LIBRE
             try (PreparedStatement pstUpdatePlaza = con.prepareStatement(sqlUpdatePlaza)) {
-
                 pstUpdatePlaza.setString(1, "LIBRE");
                 pstUpdatePlaza.setInt(2, numeroPlaza);
                 pstUpdatePlaza.executeUpdate();
@@ -337,7 +325,6 @@ public class Reserva {
 
             con.commit();
 
-            // Actualizar el objeto en memoria con el coste calculado
             this.coste = costeTotal;
             this.fechaHoraSalida = fechaSalida;
 
@@ -348,6 +335,5 @@ public class Reserva {
             con.setAutoCommit(true);
         }
     }
-
 
 }

@@ -11,7 +11,7 @@ import java.sql.SQLException;
  * Añade la gestión específica de un valor de descuento aplicado a la tarifa de la plaza.
  *
  * @author Diego Perez, Adrian Cava
- * @version 1.0
+ * @version 1.1
  */
 public class PlazaMinusvalida extends Plaza {
 
@@ -45,16 +45,22 @@ public class PlazaMinusvalida extends Plaza {
 
     /**
      * Registra una nueva plaza para minusválidos en la base de datos.
+     * El número se genera automáticamente y el estado inicial siempre es LIBRE.
      * Sobrescribe el método de {@link Plaza} para incluir el campo específico
      * de descuento y establecer el precio de carga como nulo en la inserción SQL.
      *
-     * @throws Exception Si la plaza ya existe en la base de datos o si ocurre
-     * un error durante la ejecución de la sentencia SQL.
+     * @throws Exception Si ocurre un error durante la ejecución de la sentencia SQL.
      */
     @Override
     public void altaPlaza() throws Exception {
+        // Auto-generar número de plaza
+        this.numeroPlaza = siguientePlaza();
+
+        // El estado siempre es LIBRE al dar de alta
+        this.estado = EstadoPlaza.LIBRE;
+
         if (existePlaza()) {
-            throw new Exception("La plaza ya existe!!");
+            throw new Exception("La plaza " + String.format("%06d", numeroPlaza) + " ya existe");
         }
 
         String sql = "INSERT INTO plaza VALUES(?,?,?,?)";
@@ -64,11 +70,11 @@ public class PlazaMinusvalida extends Plaza {
             pst.setInt(1, numeroPlaza);
             pst.setString(2, estado.toString());
             pst.setDouble(3, descuento);
-            pst.setNull(4, java.sql.Types.DECIMAL);
+            pst.setNull(4, java.sql.Types.DECIMAL);   // precioCarga NULL
             pst.executeUpdate();
 
         } catch (SQLException e) {
-            throw new Exception("Error en altaPlaza!!");
+            throw new Exception("Error en altaPlaza (PlazaMinusvalida)!!", e);
         }
     }
 

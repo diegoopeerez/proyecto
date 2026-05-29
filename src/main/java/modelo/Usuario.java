@@ -149,6 +149,10 @@ public class Usuario {
      */
     public void bajaUsuario() throws Exception {
 
+        if (!existeUsuario()) {
+            throw new Exception("El usuario no existe!!");
+        }
+
         String sql = "DELETE FROM usuario WHERE dni = ?";
 
         try (PreparedStatement pst = ConexionBD.getConexionBD().prepareStatement(sql)) {
@@ -164,6 +168,7 @@ public class Usuario {
     // CORREGIDO: antes hacía try (Connection con = ConexionBD.getConexionBD())
     // lo que cerraba la conexión compartida al salir del bloque, dejando
     // la aplicación entera sin conexión a partir de ese momento.
+
     /**
      * Modifica los datos personales de un usuario existente.
      *
@@ -187,6 +192,7 @@ public class Usuario {
         }
 
     }
+
     /**
      * Clase interna que extiende de {@link Usuario} para incluir información adicional de descuentos.
      */

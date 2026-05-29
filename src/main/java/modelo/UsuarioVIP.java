@@ -48,7 +48,7 @@ public class UsuarioVIP extends Usuario {
      * de descuento en la inserción de la base de datos.
      *
      * @throws Exception Si el usuario ya existe en la base de datos o si ocurre
-     * un error durante la ejecución de la sentencia SQL.
+     *                   un error durante la ejecución de la sentencia SQL.
      */
     @Override
     public void altaUsuario() throws Exception {
